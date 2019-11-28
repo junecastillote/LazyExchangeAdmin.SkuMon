@@ -15,7 +15,7 @@ Function SkuMonSetup {
 
     [xml]$XAML = $inputXML
     #Read XAML
- 
+
     $reader = (New-Object System.Xml.XmlNodeReader $xaml)
     try {
         $window = [Windows.Markup.XamlReader]::Load( $reader )
@@ -25,7 +25,7 @@ Function SkuMonSetup {
         throw
     }
     #Create variables based on form control names.
-    #Variable will be named as 'var_<control name>' 
+    #Variable will be named as 'var_<control name>'
     $xaml.SelectNodes("//*[@Name]") | ForEach-Object { #"trying item $($_.Name)";
         try {
             Set-Variable -Name "var_$($_.Name)" -Value $window.FindName($_.Name) -ErrorAction Stop
@@ -45,7 +45,7 @@ Function SkuMonSetup {
         )
         if ($ConfigFile) {
             $global:settingsFile = ($ConfigFile)
-            $window.Title = $windowTitle + ' - ' + ($global:settingsFile)        
+            $window.Title = $windowTitle + ' - ' + ($global:settingsFile)
             $global:settings = Get-Content ($ConfigFile) | ConvertFrom-Json
             return $global:settings
         }
@@ -54,15 +54,15 @@ Function SkuMonSetup {
             $dialog.Title = 'Open...'
             $dialog.Filter = 'JSON Settings|*.json'
             if ($dialog.ShowDialog() -eq $true) {
-                $global:settingsFile = ($dialog.FileName)      
-                $window.Title = $windowTitle + ' - ' + ($global:settingsFile)        
+                $global:settingsFile = ($dialog.FileName)
+                $window.Title = $windowTitle + ' - ' + ($global:settingsFile)
                 $global:settings = Get-Content ($global:settingsFile) | ConvertFrom-Json
                 return $global:settings
             }
             else {
                 return $global:settings
             }
-        }        
+        }
     }
 
     Function GetLastSettingsSaveTime {
@@ -119,7 +119,7 @@ Function SkuMonSetup {
                     }
                 }
             }
-            
+
             if (!$var_txtFrom.Text) {
                 $validationPassed = $false
                 Write-Warning "Missing FROM address"
@@ -192,7 +192,7 @@ Function SkuMonSetup {
             $global:settings.mailSettings.Cc = ($var_txtCc.Text).Split(",")
             $global:settings.mailSettings.Bcc = ($var_txtBcc.Text).Split(",")
             $global:settings.outputDirectory = (Split-Path -Parent -Path ($global:settingsFile)) + '\' + ((Split-Path $global:settingsFile -Leaf).Split(".")[0] + '-output')
-    
+
             if (!(Test-Path ($global:settings.outputDirectory))) {
                 New-Item -ItemType Directory -Path ($global:settings.outputDirectory)
             }
@@ -225,7 +225,7 @@ Function SkuMonSetup {
                 $var_chkSendEmail.IsChecked = $global:settings.mailSettings.sendEmail
                 $var_chkCc.IsChecked = $global:settings.mailSettings.ccEnabled
                 $var_chkBcc.IsChecked = $global:settings.mailSettings.bccEnabled
-                $var_dGrid1.ItemsSource = $global:settings.licenseToCheck
+                $var_dGrid1.ItemsSource = $global:settings.licenseToCheck# | Where-Object {$_.SkuPartNumber -ne 'DUMMY'}
                 $var_btnSave.IsEnabled = $true
                 $var_grpMonitor.IsEnabled = $true
                 $var_grpEmail.IsEnabled = $true
@@ -238,7 +238,7 @@ Function SkuMonSetup {
         {
             Write-Host ($ConfigFile + ' cannot be found')
             Return $null
-        }        
+        }
     }
     else {
         $global:settingsFile = ""
@@ -247,13 +247,13 @@ Function SkuMonSetup {
     #Add shortcut keys
     $commonKeyEvents = {
         [System.Windows.Input.KeyEventArgs] $e = $args[1]
-    
-        if ($e.Key -eq "S" -and $e.KeyboardDevice.Modifiers -eq "Ctrl") {            
+
+        if ($e.Key -eq "S" -and $e.KeyboardDevice.Modifiers -eq "Ctrl") {
             SaveSettings $global:settingsFile
         }
     }
     #.....................................
-    
+
     $window.Add_PreViewKeyDown($commonKeyEvents)
 
     #add control functions
@@ -261,9 +261,9 @@ Function SkuMonSetup {
     $var_btnSave.Add_Click( {
             SaveSettings $global:settingsFile
         })
-   
+
     #OPEN button click
-    $var_btnOpen.Add_Click( { 
+    $var_btnOpen.Add_Click( {
 
             $global:settings = OpenSettings
             if ($global:settings) {

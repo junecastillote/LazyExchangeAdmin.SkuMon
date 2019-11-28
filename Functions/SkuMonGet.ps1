@@ -67,7 +67,7 @@ Function SkuMonGet {
     #process the collection
     Write-Verbose 'Start creating the Subscribed Sku List'
     $skuCollection = @()
-    foreach ($sku in ($subscribedSkus.Value | Where-Object { $_.appliesTo -eq 'User' })) { 
+    foreach ($sku in ($subscribedSkus.Value | Where-Object { $_.appliesTo -eq 'User' })) {
         #available and excess
         $AvailableUnits = (($sku.prepaidUnits.Enabled + $sku.prepaidUnits.Warning) - $sku.ConsumedUnits)
         $ExcessUnits = 0
@@ -116,6 +116,16 @@ Function SkuMonGet {
             $licenseToCheck += $selection
         }
 
+        if ($licenseToCheck.Count -eq 1) {
+            $licenseToCheck += @{
+                Visible = $false
+                SkuID = ((New-Guid).Guid)
+                SkuPartNumber = 'DUMMY'
+                SkuFriendlyName = 'DUMMY'
+                Threshold = 0
+            }
+        }
+
         $licenseToCheck = $licenseToCheck | Sort-Object License
 
         $props = @{
@@ -136,7 +146,7 @@ Function SkuMonGet {
             }
             licenseToCheck   = $licenseToCheck
             outputDirectory  = ($NewSetup).Split("\")[-1].Split(".")[0] + '-output'
-        }    
+        }
         $settings = new-object psobject -property $props
 
         if (!(Test-Path (Split-Path -Parent -Path $NewSetup))) {

@@ -23,12 +23,12 @@ Function SkuMonReport {
     $resourceFolder = ((Split-Path -Path (Resolve-Path $PSScriptRoot).Path -Parent) + '\Resource')
     $css = Get-Content $resourceFolder\style.css -Raw
     $logo = [convert]::ToBase64String((Get-Content $resourceFolder\logo.png -Raw -Encoding byte))
-    
+
     $timeZoneInfo = [System.TimeZoneInfo]::Local
     $tz = $timeZoneInfo.DisplayName.ToString().Split(" ")[0]
 
     $today = Get-Date -Format g
-    
+
     #import config json
     Write-Verbose 'Importing configuration'
     $settings = (Get-Content $ConfigFile | ConvertFrom-Json)
@@ -36,10 +36,10 @@ Function SkuMonReport {
     #create the final list for reporting.
     Write-Verbose 'Creating the list of Skus to be reported'
     $finalList = @()
-    foreach ($item in ($settings.licenseToCheck | Where-Object { $_.Visible -eq $true })) {
+    foreach ($item in ($settings.licenseToCheck | Where-Object { $_.Visible -eq $true -and $_.SkuFriendlyName -ne 'DUMMY' })) {
         $sku = $skuCollection | Where-Object { $_.SkuId -eq $item.SkuID }
         if ($sku) {
-            
+
             $skurow = New-Object psobject -Property ([ordered]@{
                     Name      = $item.SkuFriendlyName
                     Available = $sku.Available
@@ -57,8 +57,8 @@ Function SkuMonReport {
                 })
             $finalList += $skurow
         }
-        
-    }    
+
+    }
     $finalList = $finalList | Sort-Object Threshold -Descending
     $reportCsv = ($settings.outputDirectory + '\SkuMonReport.csv')
     $finalList | Export-Csv -NoTypeInformation -Path $reportCsv
@@ -84,7 +84,7 @@ Function SkuMonReport {
     $html += '</table>'
     $html += '<table id="tbl">'
     $html += '<tr><td width="420px" colspan="2">Name</th><td width="170px">Available quantity</td><td width="5px"></td></tr>'
-    
+
     foreach ($item in $finalList) {
         #$html += '<tr><td><img src="'+($resourceFolder+'\logo.png')+'" width="44" height="51"></img></td>'
         $html += '<tr><td><img src="'+($resourceFolder+'\logo.png')+'"></img></td>'
@@ -92,10 +92,10 @@ Function SkuMonReport {
         $html += '<td>' + $item.Available + ' available<br>' + $item.Assigned + ' assigned of ' + $item.Total + ' total'
         if ($item.Threshold -ne 0) {
             if ($item.Status -eq 'Normal') {
-                $html += '<td class="green" width="5px"></td></tr>'                
+                $html += '<td class="green" width="5px"></td></tr>'
             }
             elseif ($item.Status -eq 'Warning') {
-                $html += '<td class="red" width="5px"></td></tr>'                
+                $html += '<td class="red" width="5px"></td></tr>'
             }
         }
         else {
@@ -146,7 +146,7 @@ Function SkuMonReport {
                 $bccAddressJSON += @{EmailAddress = @{Address = ($_).Trim() } }
             }
         }
-   
+
         #build JSON mail payload
         $mailBody = @{
             message = @{
@@ -174,7 +174,7 @@ Function SkuMonReport {
                         "contentBytes" = $logo
                     }
                 )
-            }							
+            }
         }
         #add CC recipients
         if ($settings.mailSettings.ccEnabled -eq $true) {
@@ -185,7 +185,7 @@ Function SkuMonReport {
         if ($settings.mailSettings.bccEnabled -eq $true) {
             $mailBody.message += @{bccRecipients = $bccAddressJSON }
         }
-        
+
         $mailBody = $mailBody | ConvertTo-JSON -Depth 4
         try {
             Invoke-RestMethod -Method Post -Uri $mailSendURI -Body $mailbody -Headers $Token -ContentType application/json | out-null
@@ -193,7 +193,7 @@ Function SkuMonReport {
         }
         catch {
             Write-Error $_.Exception
-            EXIT
-        }        
+            break
+        }
     }
 }

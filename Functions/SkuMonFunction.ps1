@@ -19,7 +19,7 @@ Function SkuMonLogStop
 	Do {
 		try {
 			Stop-Transcript | Out-Null
-		} 
+		}
 		catch [System.InvalidOperationException]{
 			$txnLog="stopped"
 		}
@@ -29,7 +29,7 @@ Function SkuMonLogStop
 #Function to Start transcribing
 Function SkuMonLogStart
 {
-    param 
+    param
     (
         [Parameter(Mandatory=$true,Position=0)]
         [string]$logDirectory
