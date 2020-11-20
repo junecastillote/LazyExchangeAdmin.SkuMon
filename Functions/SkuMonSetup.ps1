@@ -170,15 +170,6 @@ Function SkuMonSetup {
         #store contents of dataGrid
 
         if ($validationPassed -eq $true) {
-            <#
-            $monitorList = @()
-            $i = 0
-            do {
-                $monitorList += $var_dGrid1.Items[$i]
-                $i++
-            } While ($i -ne ($var_dGrid1.Items.count))
-            $global:settings.licenseToCheck = $monitorList
-            #>
             $global:settings.licenseToCheck = $var_dGrid1.Items
             $global:settings.organizationName = $var_txtOrgName.Text
             $global:settings.appSettings.clientID = $var_txtClientID.Text
@@ -225,7 +216,7 @@ Function SkuMonSetup {
                 $var_chkSendEmail.IsChecked = $global:settings.mailSettings.sendEmail
                 $var_chkCc.IsChecked = $global:settings.mailSettings.ccEnabled
                 $var_chkBcc.IsChecked = $global:settings.mailSettings.bccEnabled
-                $var_dGrid1.ItemsSource = $global:settings.licenseToCheck# | Where-Object {$_.SkuPartNumber -ne 'DUMMY'}
+                $var_dGrid1.ItemsSource = $global:settings.licenseToCheck | Sort-Object SkuFriendlyName
                 $var_btnSave.IsEnabled = $true
                 $var_grpMonitor.IsEnabled = $true
                 $var_grpEmail.IsEnabled = $true
@@ -278,7 +269,7 @@ Function SkuMonSetup {
                 $var_chkSendEmail.IsChecked = $global:settings.mailSettings.sendEmail
                 $var_chkCc.IsChecked = $global:settings.mailSettings.ccEnabled
                 $var_chkBcc.IsChecked = $global:settings.mailSettings.bccEnabled
-                $var_dGrid1.ItemsSource = $global:settings.licenseToCheck
+                $var_dGrid1.ItemsSource = $global:settings.licenseToCheck | Sort-Object SkuFriendlyName
                 $var_btnSave.IsEnabled = $true
                 $var_grpMonitor.IsEnabled = $true
                 $var_grpEmail.IsEnabled = $true
