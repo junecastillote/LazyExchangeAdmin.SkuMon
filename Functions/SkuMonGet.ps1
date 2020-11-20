@@ -157,7 +157,7 @@ Function SkuMonGet {
         $settings | ConvertTo-Json | Out-File $NewSetup
         Write-Verbose 'New setup file created'
         Write-Verbose 'Opening the setup interface'
-        SkuMonSetup (Resolve-Path $NewSetup)
+        $null = SkuMonSetup (Resolve-Path $NewSetup)
         Write-Verbose 'Done'
         SkuMonLogStop
     }
