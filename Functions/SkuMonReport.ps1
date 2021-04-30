@@ -15,11 +15,18 @@ Function SkuMonReport {
         $Token
     )
 
-
     if (!(Test-Path $ConfigFile)) {
         Write-Warning "The specified configuration file cannot be found."
         EXIT
     }
+
+    #Create the output directory if it does not exist
+    $outputDirectory = $ExecutionContext.InvokeCommand.ExpandString($settings.outputDirectory)
+    if (!(Test-Path $outputDirectory )) {
+        $null = New-Item -Type Directory $outputDirectory
+    }
+    $outputDirectory
+
     $resourceFolder = ((Split-Path -Path (Resolve-Path $PSScriptRoot).Path -Parent) + '\Resource')
     $css = Get-Content $resourceFolder\style.css -Raw
     $logo = [convert]::ToBase64String((Get-Content $resourceFolder\logo.png -Raw -Encoding byte))
@@ -60,7 +67,8 @@ Function SkuMonReport {
 
     }
     $finalList = $finalList | Sort-Object Threshold -Descending
-    $reportCsv = ($settings.outputDirectory + '\SkuMonReport.csv')
+
+    $reportCsv = "$($outputDirectory)\SkuMonReport.csv"
     $finalList | Export-Csv -NoTypeInformation -Path $reportCsv
 
     #build HTML report
@@ -116,7 +124,9 @@ Function SkuMonReport {
     $html += '</table>'
     $html += '</body>'
     $html += '</html>'
-    $reportHTML = ($settings.outputDirectory + '\SkuMonReport.html')
+    # $reportHTML = ($ExecutionContext.InvokeCommand.ExpandString(($settings.outputDirectory)) + '\SkuMonReport.html')
+    # $reportHTML = ($settings.outputDirectory + '\SkuMonReport.html')
+    $reportHTML = "$($outputDirectory)\SkuMonReport.html"
     $html = ($html -join "`n")
     $html | Out-File $reportHTML -Encoding utf8
     Write-Verbose ('HTML Report saved in ' + $reportHTML)
